@@ -46,6 +46,7 @@ for i in range(0, nbFragments):
     # On calcule le nouveau ICV
     icvMessage = zlib.crc32(fragMessage.encode()) & 0xffffffff
 
+    # On crée le payload avec le message + l'ICV
     payload = fragMessage.encode()+struct.pack('<L', icvMessage)
 
     # rc4 seed est composé de IV+clé
@@ -72,7 +73,7 @@ for i in range(0, nbFragments):
     # On append le fragment actuel
     arps.append(arp)
 
-print("Sent " + str(nbFragments) + " fragments")
+print(str(nbFragments) + " fragments written")
 
-# On ecrit les fragments
+# On ecrit les fragments dans le fichier final
 wrpcap("output_multiple.pcap", arps)

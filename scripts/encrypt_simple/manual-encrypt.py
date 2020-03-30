@@ -24,10 +24,12 @@ key= b'\xaa\xaa\xaa\xaa\xaa'
 #lecture de message chiffré - rdpcap retourne toujours un array, même si la capture contient un seul paquet
 arp = rdpcap('arp.cap')[0]
 
-# On calcule le nouveau seed
+# On calcule le nouveau icv du message sur 32bits
 icvMessage = zlib.crc32(message.encode()) & 0xffffffff
 
+#On crée le payload avec le message + l'ICV
 payload = message.encode()+struct.pack('<L', icvMessage)
+
 # rc4 seed est composé de IV+clé
 seed = arp.iv+key
 
@@ -37,6 +39,7 @@ cipher = RC4(seed, streaming=True)
 # Chiffrement du payload
 cipherText = cipher.crypt(payload)
 
+#On recupère l'ICV contenu dans le ciphertext.
 encrypted_icv = struct.unpack('!L', cipherText[-4:])[0]
 
 # Affichage des différentes informations concernant le fragment actuel
@@ -47,5 +50,5 @@ print('Encrypted message : ' + cipherText[:-4].hex() + ' and the encrypted ICV i
 arp.wepdata = cipherText[:-4]
 arp.icv = encrypted_icv
 
-
+# Ecriture du fichier final
 wrpcap("output.pcap", arp)
